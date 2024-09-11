@@ -25,5 +25,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: your-dockerhub-username/your-image-name:latest
+          tags: danielleedxdocker/memos_time:latest
 
