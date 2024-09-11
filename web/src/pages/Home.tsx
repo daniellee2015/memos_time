@@ -44,6 +44,7 @@ const Home = () => {
     const filters = [`creator == "${user.name}"`, `row_status == "NORMAL"`, `order_by_pinned == true`];
     const contentSearch: string[] = [];
     const tagSearch: string[] = [];
+    
     for (const filter of memoFilterStore.filters) {
       if (filter.factor === "contentSearch") {
         contentSearch.push(`"${filter.value}"`);
@@ -56,11 +57,18 @@ const Home = () => {
       } else if (filter.factor === "property.hasCode") {
         filters.push(`has_code == true`);
       } else if (filter.factor === "displayTime") {
-        const timestampAfter = new Date(new Date(filter.value).setHours(0, 0, 0, 0)).getTime() / 1000;
+        const startDate = new Date(filter.value);
+        const endDate = new Date(startDate);
+        endDate.setHours(23, 59, 59, 999); // 确保包括整天的最后一刻
+        
+        const timestampAfter = Math.floor(startDate.getTime() / 1000);
+        const timestampBefore = Math.floor(endDate.getTime() / 1000);
+        
         filters.push(`display_time_after == ${timestampAfter}`);
-        filters.push(`display_time_before == ${timestampAfter + 60 * 60 * 24}`);
+        filters.push(`display_time_before == ${timestampBefore}`);
       }
     }
+    
     if (memoFilterStore.orderByTimeAsc) {
       filters.push(`order_by_time_asc == true`);
     }
@@ -70,14 +78,17 @@ const Home = () => {
     if (tagSearch.length > 0) {
       filters.push(`tag_search == [${tagSearch.join(", ")}]`);
     }
+    
     const response = await memoStore.fetchMemos({
       pageSize: DEFAULT_LIST_MEMOS_PAGE_SIZE,
       filter: filters.join(" && "),
       pageToken: nextPageToken,
     });
+    
     setIsRequesting(false);
     setNextPageToken(response.nextPageToken);
   };
+  
 
   return (
     <section className="@container w-full max-w-5xl min-h-full flex flex-col justify-start items-center sm:pt-3 md:pt-6 pb-8">
